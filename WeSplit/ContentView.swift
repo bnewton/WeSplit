@@ -2,25 +2,25 @@
 //  ContentView.swift
 //  WeSplit
 //
-//  Created by bnewton on 1/31/22.
+//  Created by bnewton on 2/4/22.
 //
 
 import SwiftUI
 
 struct ContentView: View {
+    
+    @FocusState private var amountIsFocused: Bool
+
     @State private var checkAmount = 0.0
     @State private var numberOfPeople = 2
     @State private var tipPercentage = 20
     
     let tipPercentages = [0, 10, 15, 20, 25]
     
-    @FocusState private var amountIsFocused: Bool
-    
+
     var totalPerPerson: Double {
-        // calculate the total per person here
         let peopleCount = Double(numberOfPeople + 2)
         let tipSelection = Double(tipPercentage)
-        
         let tipValue = checkAmount / 100 * tipSelection
         let grandTotal = checkAmount + tipValue
         let amountPerPerson = grandTotal / peopleCount
@@ -28,14 +28,26 @@ struct ContentView: View {
         return amountPerPerson
     }
     
+    var totalAmount: Double{
+        let tipSelection = Double(tipPercentage)
+        let tipValue = checkAmount / 100 * tipSelection
+        let grandTotal = checkAmount + tipValue
+
+        return grandTotal
+    }
+    
+    var currencyFormat: FloatingPointFormatStyle<Double>.Currency{
+        let currencyCode = Locale.current.currencyCode ?? "USD"
+        return FloatingPointFormatStyle<Double>.Currency(code: currencyCode)
+    }
+    
     var body: some View {
-        
-        NavigationView {
+        NavigationView{
             Form {
                 Section {
-                    TextField("Amount", value: $checkAmount, format: .currency(code: Locale.current.currencyCode ?? "USD"))
-                        .keyboardType(.decimalPad)
+                    TextField("Amount", value: $checkAmount, format: currencyFormat)
                         .focused($amountIsFocused)
+                        .keyboardType(.decimalPad)
                     
                     Picker("Number of Peple", selection: $numberOfPeople){
                         ForEach(2..<100){
@@ -47,25 +59,34 @@ struct ContentView: View {
                 
                 Section {
                     Picker("Tip Percentage", selection: $tipPercentage){
-                        ForEach(tipPercentages, id:  \.self){
-                            Text($0, format: .percent)
+                        ForEach(0..<101){
+                                Text($0, format: .percent)
+                            }
+                            
                         }
-                    }
-                    .pickerStyle(.segmented)
-                    
-                } header: {
+                    } header: {
                     Text("How much tip do you want to leave")
                 }
                 
+                
                 Section {
-                    Text(totalPerPerson, format: .currency(code: Locale.current.currencyCode ?? "USD"))
+                    Text(totalAmount, format: currencyFormat)
+                } header: {
+                    Text("Total AMOUNT")
+                }
+                
+                Section {
+                    Text(totalPerPerson, format: currencyFormat)
+                } header: {
+                    Text("Amount per person")
                 }
             }
             .navigationTitle("WeSplit")
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard){
+                    Spacer()
                     Button("Done") {
-                        amountIsFocused = false
+                        amountIsFocused.toggle()
                     }
                 }
             }
@@ -78,3 +99,4 @@ struct ContentView_Previews: PreviewProvider {
         ContentView()
     }
 }
+
